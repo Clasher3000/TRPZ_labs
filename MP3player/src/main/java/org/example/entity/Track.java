@@ -17,6 +17,10 @@ public class Track {
     @Column(name = "path")
     private String path;
 
+    @ManyToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
+    @JoinColumn(name = "playlist_id")
+    private Playlist playlist;
+
     @Column(name = "position")
     private int position;
 

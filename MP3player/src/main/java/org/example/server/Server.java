@@ -1,5 +1,7 @@
 package org.example.server;
 
+import org.example.server.command.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,24 +20,32 @@ public class Server {
         Socket s = ss.accept();
         System.out.println("Client connected.");
 
-        musicPlayer = new MusicPlayer();
 
         BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+
+        musicPlayer = new MusicPlayer(out);
 
         String clientMessage;
         while ((clientMessage = in.readLine()) != null) {
             System.out.println("Received from client: " + clientMessage);
 
-            String[] parts = clientMessage.split(" ", 2); // Розділити на команду і аргумент
+            String[] parts = clientMessage.split(" ", 2); // Розділити команду та аргументи
+            String command = parts[0].toLowerCase();
+            String myArgs = parts.length > 1 ? parts[1] : "";
 
-            String command = parts[0].toLowerCase(); // Перша частина - команда
-            String argument = parts.length > 1 ? parts[1] : ""; // Друга частина - аргумент (назва пісні)
+            // Розділяємо аргументи за комами
+            String[] arguments = myArgs.split(","); // args[0] - назва треку, args[1] - шлях до файлу
 
             switch (command) {
                 case "help":
-                    out.println("play <playlist_name> to play playlist");
-                    out.println("stop to stop music");
+                    out.println("Commands:");
+                    out.println("play <track_title> - Play a specific track.");
+                    out.println("stop - Stop the current track.");
+                    out.println("add <track_title>,<file_path> - Add a new track to the library.");
+                    out.println("time - Display the server's current time.");
+                    out.println("date - Display the server's current date.");
+                    out.println("exit - Disconnect from the server.");
                     break;
                 case "time":
                     out.println("Server time: " + java.time.LocalTime.now());
@@ -43,17 +53,29 @@ public class Server {
                 case "date":
                     out.println("Server date: " + java.time.LocalDate.now());
                     break;
-                case "play": // Команда для відтворення пісні
-                    if (!argument.isEmpty()) {
-                        out.println("Playing song: " + argument);
-                        musicPlayer.playSong(argument); // Передати назву пісні
-                    } else {
-                        out.println("No song specified. Please provide a song name.");
-                    }
+                case "play":
+                    Command playCommand = new PlayCommand(musicPlayer, arguments[0], out);
+                    playCommand.execute();
                     break;
-                case "stop": // Команда для зупинки пісні
-                    musicPlayer.stopSong(); // Додайте метод stopSong() у MusicPlayer
-                    out.println("Song stopped.");
+                case "pause":
+                    Command pauseCommand = new PauseCommand(musicPlayer, out);
+                    pauseCommand.execute();
+                    break;
+                case "resume":
+                    Command resumeCommand = new ResumeCommand(musicPlayer, out);
+                    resumeCommand.execute();
+                    break;
+                case "stop":
+                    Command stopCommand = new StopCommand(musicPlayer, out);
+                    stopCommand.execute();
+                    break;
+                case "start":
+                    Command startCommand = new StartCommand(musicPlayer,arguments[0], out);
+                    startCommand.execute();
+                    break;
+                case "add":
+                    Command addTrackCommand = new AddTrackCommand(musicPlayer, arguments[0], arguments[1], out);
+                    addTrackCommand.execute();
                     break;
                 case "exit":
                     out.println("Goodbye!");

@@ -5,6 +5,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import org.example.entity.Playlist;
+import org.example.entity.Playlist_;
 import org.example.entity.Track;
 import org.example.entity.Track_;
 import org.hibernate.Session;
@@ -13,13 +15,9 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import java.util.List;
-
-public class TrackRepository {
-
+public class PlaylistRepository {
     private SessionFactory sessionFactory;
-
-    public TrackRepository() {
+    public PlaylistRepository() {
         // Ініціалізація SessionFactory в конструкторі
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure() // конфігурація з hibernate.cfg.xml
@@ -45,43 +43,20 @@ public class TrackRepository {
         return sessionFactory.openSession();
     }
 
-    public List<Track> getAll() {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
-        List<Track> tracks = entityManager.createQuery("SELECT t from Track t", Track.class).getResultList();
-
-        entityManager.getTransaction().commit();
-        return tracks;
-    }
-
-    public Track getTrackByTitle(String title) {
+    public Playlist getPlaylistByName(String name) {
 
         EntityManager entityManager = sessionFactory.createEntityManager();
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        CriteriaQuery<Track> criteriaQuery = criteriaBuilder.createQuery(Track.class);
-        Root<Track> root = criteriaQuery.from(Track.class);
-        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Track_.TITLE), title));
+        CriteriaQuery<Playlist> criteriaQuery = criteriaBuilder.createQuery(Playlist.class);
+        Root<Playlist> root = criteriaQuery.from(Playlist.class);
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Playlist_.NAME), name));
 
-        TypedQuery<Track> query = entityManager.createQuery(criteriaQuery);
-        Track result = query.getSingleResult();
+        TypedQuery<Playlist> query = entityManager.createQuery(criteriaQuery);
+        Playlist result = query.getSingleResult();
 
 
         entityManager.close();
         return result;
     }
-    public void saveTrack(String title, String path){
-            Track track = new Track(title, path, 2);
-
-            EntityManager entityManager = sessionFactory.createEntityManager();
-
-
-            entityManager.getTransaction().begin();
-
-            entityManager.persist(track);
-
-            entityManager.getTransaction().commit();
-    }
-
 }

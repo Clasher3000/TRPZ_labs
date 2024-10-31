@@ -7,6 +7,8 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import org.example.entity.Playlist;
+import org.example.entity.Playlist_;
 import org.example.entity.Track;
 import org.example.entity.Track_;
 import org.hibernate.Session;
@@ -79,7 +81,7 @@ public class HibernateFullTest {
         entityManager.getTransaction().commit();
         }
     @Test
-    void criteriaApi() {
+    void criteriaApiTrack() {
 
         EntityManager entityManager = sessionFactory.createEntityManager();
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -90,6 +92,22 @@ public class HibernateFullTest {
 
         TypedQuery<Track> query = entityManager.createQuery(criteriaQuery);
         List<Track> results = query.getResultList();
+        results.forEach(System.out::println);
+
+        entityManager.close();
+    }
+    @Test
+    void criteriaApiPlaylist() {
+
+        EntityManager entityManager = sessionFactory.createEntityManager();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Playlist> criteriaQuery = criteriaBuilder.createQuery(Playlist.class);
+        Root<Playlist> root = criteriaQuery.from(Playlist.class);
+        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Playlist_.NAME),"My Player"));
+
+        TypedQuery<Playlist> query = entityManager.createQuery(criteriaQuery);
+        List<Playlist> results = query.getResultList();
         results.forEach(System.out::println);
 
         entityManager.close();

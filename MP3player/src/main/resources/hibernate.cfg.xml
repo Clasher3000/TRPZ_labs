@@ -22,5 +22,6 @@
 
         <!-- Mapping classes -->
         <mapping class="org.example.entity.Track"/>
+        <mapping class="org.example.entity.Playlist"/>
     </session-factory>
 </hibernate-configuration>
