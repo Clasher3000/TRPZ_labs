@@ -59,4 +59,16 @@ public class PlaylistRepository {
         entityManager.close();
         return result;
     }
+    public void createPlaylist(String name){
+        Playlist playlist = new Playlist(name);
+
+        EntityManager entityManager = sessionFactory.createEntityManager();
+
+
+        entityManager.getTransaction().begin();
+
+        entityManager.persist(playlist);
+
+        entityManager.getTransaction().commit();
+    }
 }

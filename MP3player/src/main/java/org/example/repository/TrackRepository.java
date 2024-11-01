@@ -5,6 +5,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
+import org.example.entity.Playlist;
 import org.example.entity.Track;
 import org.example.entity.Track_;
 import org.hibernate.Session;
@@ -82,6 +83,23 @@ public class TrackRepository {
             entityManager.persist(track);
 
             entityManager.getTransaction().commit();
+    }
+    public void addTrackToPlaylist(Track track, Playlist playlist) {
+        EntityManager entityManager = sessionFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
+
+        // Додаємо трек до списку треків у плейлисті та зберігаємо зміни
+        if (playlist != null && track != null) {
+            track.setPlaylist(playlist);
+            entityManager.merge(track); //
+            System.out.println("Successful!");
+        } else {
+            System.out.println("Playlist or Track not found.");
+        }
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
     }
 
 }

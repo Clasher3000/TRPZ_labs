@@ -47,7 +47,7 @@ public class Client {
 
             // Відправка команди на сервер
             out.println(command);
-            Thread.sleep(200);
+            Thread.sleep(500);
         }
 
         // Закриття ресурсів

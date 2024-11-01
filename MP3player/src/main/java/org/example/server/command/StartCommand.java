@@ -19,7 +19,9 @@ public class StartCommand implements Command {
 
     @Override
     public void execute() {
-        musicPlayer.playPlaylist(name);
-        out.println("Playlist: " + name+ " is playing");
+        if (name != null && !name.isEmpty()) {
+            musicPlayer.playPlaylist(name);
+        }
+        else out.println("Please provide a playlist name");
     }
 }

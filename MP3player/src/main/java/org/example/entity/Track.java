@@ -66,6 +66,14 @@ public class Track {
         this.position = position;
     }
 
+    public Playlist getPlaylist() {
+        return playlist;
+    }
+
+    public void setPlaylist(Playlist playlist) {
+        this.playlist = playlist;
+    }
+
     @Override
     public String toString() {
         return "Track{" +

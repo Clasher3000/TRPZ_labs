@@ -1,6 +1,10 @@
 package org.example.server;
 
 import org.example.server.command.*;
+import org.example.service.PlayListServiceImpl;
+import org.example.service.PlaylistService;
+import org.example.service.TrackService;
+import org.example.service.TrackServiceImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,6 +29,8 @@ public class Server {
         PrintWriter out = new PrintWriter(s.getOutputStream(), true);
 
         musicPlayer = new MusicPlayer(out);
+        PlaylistService playlistService = new PlayListServiceImpl();
+        TrackService trackService = new TrackServiceImpl();
 
         String clientMessage;
         while ((clientMessage = in.readLine()) != null) {
@@ -39,19 +45,8 @@ public class Server {
 
             switch (command) {
                 case "help":
-                    out.println("Commands:");
-                    out.println("play <track_title> - Play a specific track.");
-                    out.println("stop - Stop the current track.");
-                    out.println("add <track_title>,<file_path> - Add a new track to the library.");
-                    out.println("time - Display the server's current time.");
-                    out.println("date - Display the server's current date.");
-                    out.println("exit - Disconnect from the server.");
-                    break;
-                case "time":
-                    out.println("Server time: " + java.time.LocalTime.now());
-                    break;
-                case "date":
-                    out.println("Server date: " + java.time.LocalDate.now());
+                    Command helpCommand = new HelpCommand(out);
+                    helpCommand.execute();
                     break;
                 case "play":
                     Command playCommand = new PlayCommand(musicPlayer, arguments[0], out);
@@ -73,9 +68,25 @@ public class Server {
                     Command startCommand = new StartCommand(musicPlayer,arguments[0], out);
                     startCommand.execute();
                     break;
+                case "next":
+                    Command nextCommand = new NextCommand(musicPlayer,out);
+                    nextCommand.execute();
+                    break;
+                case "prev":
+                    Command prevCommand = new PrevCommand(musicPlayer);
+                    prevCommand.execute();
+                    break;
                 case "add":
-                    Command addTrackCommand = new AddTrackCommand(musicPlayer, arguments[0], arguments[1], out);
+                    Command addTrackCommand = new AddTrackCommand(trackService, arguments[0], arguments[1], out);
                     addTrackCommand.execute();
+                    break;
+                case "create_playlist":
+                    Command createPlaylist = new CreatePlaylistCommand(playlistService, arguments[0], out);
+                    createPlaylist.execute();
+                    break;
+                case "add_to_playlist":
+                    Command addToPlaylist = new AddToPlaylistCommand(trackService, arguments[0], arguments[1], out);
+                    addToPlaylist.execute();
                     break;
                 case "exit":
                     out.println("Goodbye!");

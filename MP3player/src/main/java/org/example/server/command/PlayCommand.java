@@ -20,9 +20,8 @@ public class PlayCommand implements Command {
         try {
             if (title != null && !title.isEmpty()) {
                 musicPlayer.playSong(title);
-                out.println("Playing song: " + title);
             } else {
-                out.println("Please provide a song name.");
+                out.println("Please provide a track title.");
             }
         } catch (Exception e) {
             out.println("Error: " + e.getMessage());

@@ -14,7 +14,12 @@ public class HelpCommand implements Command{
         out.println("Commands:");
         out.println("play <track_title> - Play a specific track.");
         out.println("stop - Stop the current track.");
+        out.println("pause - Pause the current track.");
+        out.println("resume - Resume the current track.");
+        out.println("start <playlist_name> - Play a specific playlist.");
+        out.println("next  - Play next track in playlist.");
         out.println("add <track_title> <track path> - Add track.");
+        out.println("create_playlist <playlist_name> - Create playlist");
         out.println("exit - Disconnect from the server.");
     }
 }

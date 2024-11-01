@@ -15,4 +15,9 @@ public class PlayListServiceImpl implements PlaylistService{
     public Playlist findByName(String name) {
         return playlistRepository.getPlaylistByName(name);
     }
+
+    @Override
+    public void create(String name) {
+        playlistRepository.createPlaylist(name);
+    }
 }
