@@ -2,9 +2,10 @@ package org.example.server.command;
 
 import java.io.PrintWriter;
 
-public class HelpCommand implements Command{
+public class HelpCommand implements Command {
 
     private PrintWriter out;
+
     public HelpCommand(PrintWriter out) {
         this.out = out;
     }
@@ -20,6 +21,7 @@ public class HelpCommand implements Command{
         out.println("next  - Play next track in playlist.");
         out.println("add <track_title> <track path> - Add track.");
         out.println("create_playlist <playlist_name> - Create playlist");
+        out.println("add_to_playlist <playlist_name>,<track_title> - Add track to the playlist");
         out.println("exit - Disconnect from the server.");
     }
 }
