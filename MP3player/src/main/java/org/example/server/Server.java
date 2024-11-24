@@ -88,6 +88,14 @@ public class Server {
                     Command addToPlaylist = new AddToPlaylistCommand(trackService, arguments[0], arguments[1], out);
                     addToPlaylist.execute();
                     break;
+                case "save_state":
+                    Command saveState = new SaveStateCommand(musicPlayer);
+                    saveState.execute();
+                    break;
+                case "restore_state":
+                    Command restoreState = new RestoreStateCommand(musicPlayer);
+                    restoreState.execute();
+                    break;
                 case "exit":
                     out.println("Goodbye!");
                     s.close();

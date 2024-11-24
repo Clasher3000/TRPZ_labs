@@ -19,6 +19,7 @@ public class PlayCommand implements Command {
     public void execute() {
         try {
             if (title != null && !title.isEmpty()) {
+                musicPlayer.clearPlaylist();
                 musicPlayer.playSong(title);
             } else {
                 out.println("Please provide a track title.");

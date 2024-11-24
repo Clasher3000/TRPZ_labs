@@ -16,6 +16,7 @@ public class StopCommand implements Command{
     @Override
     public void execute() {
         musicPlayer.stopSong();
+        musicPlayer.clearPlaylist();
         out.println("Track stopped");
     }
 }

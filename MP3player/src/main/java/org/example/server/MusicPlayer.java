@@ -7,6 +7,8 @@ import org.example.entity.Playlist;
 import org.example.entity.Track;
 import org.example.server.iterator.TrackIterator;
 import org.example.server.iterator.TrackIteratorImpl;
+import org.example.server.memento.Caretaker;
+import org.example.server.memento.Memento;
 import org.example.service.PlayListServiceImpl;
 import org.example.service.PlaylistService;
 import org.example.service.TrackService;
@@ -16,6 +18,7 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLOutput;
 
 public class MusicPlayer {
     private TrackService trackService;
@@ -23,13 +26,12 @@ public class MusicPlayer {
     private AdvancedPlayer player;
     private Thread playThread;
     private PrintWriter out;
-
-    private int currentTrackIndex = 0;
     private Track track;
     private Playlist playlist;
     private int pausedFrame = 0; // Кадр, на якому була пауза
     private boolean isPaused = false;
     private TrackIterator trackIterator;
+    private final Caretaker caretaker = new Caretaker();
 
     public MusicPlayer(PrintWriter out) {
         this.trackService = new TrackServiceImpl();
@@ -38,11 +40,11 @@ public class MusicPlayer {
     }
 
     public void playSong(String fileName) {
-        stopSong();
+        stopSong(); // Зупиняємо попереднє відтворення
 
         playThread = new Thread(() -> {
             try {
-                Track track = trackService.findByTitle(fileName);
+                track = trackService.findByTitle(fileName);
                 if (track == null) {
                     out.println("Track not found.");
                     return;
@@ -52,44 +54,48 @@ public class MusicPlayer {
 
                 player = new AdvancedPlayer(bis);
                 out.println("Playing: " + fileName);
-                player.play();
+                player.play(); // Відтворюємо поточний трек
 
-                if(playlist!=null) {
-                    playNextTrackInPlaylist();
-                }
-            }
-            catch (NoResultException e){
+            } catch (NoResultException e) {
                 out.println("Incorrect track title");
-            }
-            catch (JavaLayerException | IOException e) {
+            } catch (JavaLayerException | IOException e) {
                 out.println("Error playing song: " + e.getMessage());
             }
         });
 
         playThread.start(); // Запускаємо відтворення в окремому потоці
     }
+
+
     public void playPlaylist(String playlistName) {
         try {
-            Playlist playlist = playlistService.findByName(playlistName);
+            playlist = playlistService.findByName(playlistName);
             if (playlist != null && playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
                 trackIterator = new TrackIteratorImpl(playlist.getTracks());
+
                 playNextTrackInPlaylist();
                 out.println("Playlist: " + playlistName + " is playing");
             } else {
                 out.println("Playlist is empty or does not exist.");
             }
-        } catch (NoResultException e){
+        } catch (NoResultException e) {
             out.println("Incorrect playlist name");
         }
     }
-    public void playNextTrackInPlaylist() {
+
+    public synchronized void playNextTrackInPlaylist() {
+        if (player != null) {
+            stopSong(); // Зупиняємо поточний трек перед відтворенням наступного
+        }
+
         if (trackIterator != null && trackIterator.hasNext()) {
             Track nextTrack = trackIterator.next();
-            playSong(nextTrack.getTitle());
+            playSong(nextTrack.getTitle()); // Відтворюємо наступний трек
         } else {
             out.println("There are no more tracks.");
         }
     }
+
     public void playPreviousTrackInPlaylist() {
         if (trackIterator != null && trackIterator.hasPrevious()) {
             Track previousTrack = trackIterator.previous();
@@ -99,19 +105,53 @@ public class MusicPlayer {
         }
     }
 
+    public void playPlaylistOnTrack(String playlistName, String trackTitle) {
+        try {
+            stopSong(); // Зупиняємо будь-яке поточне відтворення
+            playlist = playlistService.findByName(playlistName);
+
+            if (playlist != null && playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
+                trackIterator = new TrackIteratorImpl(playlist.getTracks());
+
+                // Знаходимо трек у плейлисті та встановлюємо позицію ітератора
+                boolean trackFound = false;
+                while (trackIterator.hasNext()) {
+                    Track currentTrack = trackIterator.next();
+                    if (currentTrack.getTitle().equalsIgnoreCase(trackTitle)) {
+                        trackFound = true;
+                        playSong(currentTrack.getTitle()); // Починаємо відтворення треку
+                        break;
+                    }
+                }
+
+                if (!trackFound) {
+                    out.println("Track " + trackTitle + " not found in playlist " + playlistName + ".");
+                } else {
+                    out.println("Playing playlist " + playlistName + " starting from track " + trackTitle + ".");
+                }
+            } else {
+                out.println("Playlist " + playlistName + " is empty or does not exist.");
+            }
+        } catch (NoResultException e) {
+            out.println("Playlist " + playlistName + " not found.");
+        }
+    }
+
+
     public void stopSong() {
         if (player != null) {
             player.close(); // Зупиняємо відтворення
             System.out.println("Song stopped.");
-
         }
         if (playThread != null && playThread.isAlive()) {
             playThread.interrupt(); // Перериваємо потік, якщо він активний
         }
-        pausedFrame = 0; // Скидаємо кадр паузи
         track = null;
-        playlist = null;
-        currentTrackIndex = 0;
+    }
+    public void clearPlaylist() {
+        playlist = null;  // Очищаємо плейлист
+        trackIterator = null;  // Очищаємо ітератор
+        out.println("Playlist cleared.");
     }
 
 
@@ -135,4 +175,47 @@ public class MusicPlayer {
             out.println("No song is currently paused.");
         }
     }
+
+    public void saveState() {
+        if (track != null) {
+            if (playlist != null){
+                caretaker.save(playlist, track);
+                out.println("State saved: Playlist - " + playlist.getName() + ", Track - " + track.getTitle());
+            }
+            else{
+                caretaker.save(track);
+                out.println("State saved: Track - " + track.getTitle());
+            }
+        }
+        else {
+            out.println("Nothing is playing now.");
+        }
+
+    }
+
+
+    public void restoreState() {
+        Memento memento = caretaker.undo();
+        if (memento != null) {
+            // Отримуємо трек і плейлист зі збереженого стану
+            Playlist savedPlaylist = memento.getPlaylist();
+            Track savedTrack = memento.getTrack();
+
+            if (savedPlaylist != null && savedTrack != null) {
+                // Відновлюємо плейлист і починаємо збережений трек
+                playPlaylistOnTrack(savedPlaylist.getName(), savedTrack.getTitle());
+            } else if (savedTrack != null) {
+                // Якщо є тільки трек, граємо його
+                playSong(savedTrack.getTitle());
+            } else {
+                out.println("No saved track or playlist to restore.");
+            }
+        } else {
+            out.println("No saved state available.");
+        }
+    }
+
+
+
+
 }
