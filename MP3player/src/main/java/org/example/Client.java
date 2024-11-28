@@ -54,6 +54,5 @@ public class Client {
         out.close();
         in.close();
         socket.close();
-        System.out.println("Client disconnected.");
     }
 }

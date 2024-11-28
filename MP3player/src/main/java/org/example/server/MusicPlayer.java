@@ -28,7 +28,7 @@ public class MusicPlayer {
     private PrintWriter out;
     private Track track;
     private Playlist playlist;
-    private int pausedFrame = 0; // Кадр, на якому була пауза
+    private int pausedFrame = 0;
     private boolean isPaused = false;
     private TrackIterator trackIterator;
     private final Caretaker caretaker = new Caretaker();
@@ -40,7 +40,7 @@ public class MusicPlayer {
     }
 
     public void playSong(String fileName) {
-        stopSong(); // Зупиняємо попереднє відтворення
+        stopSong();
 
         playThread = new Thread(() -> {
             try {
@@ -54,7 +54,7 @@ public class MusicPlayer {
 
                 player = new AdvancedPlayer(bis);
                 out.println("Playing: " + fileName);
-                player.play(); // Відтворюємо поточний трек
+                player.play();
 
             } catch (NoResultException e) {
                 out.println("Incorrect track title");
@@ -63,7 +63,7 @@ public class MusicPlayer {
             }
         });
 
-        playThread.start(); // Запускаємо відтворення в окремому потоці
+        playThread.start();
     }
 
 
@@ -85,12 +85,12 @@ public class MusicPlayer {
 
     public synchronized void playNextTrackInPlaylist() {
         if (player != null) {
-            stopSong(); // Зупиняємо поточний трек перед відтворенням наступного
+            stopSong();
         }
 
         if (trackIterator != null && trackIterator.hasNext()) {
             Track nextTrack = trackIterator.next();
-            playSong(nextTrack.getTitle()); // Відтворюємо наступний трек
+            playSong(nextTrack.getTitle());
         } else {
             out.println("There are no more tracks.");
         }
@@ -107,19 +107,19 @@ public class MusicPlayer {
 
     public void playPlaylistOnTrack(String playlistName, String trackTitle) {
         try {
-            stopSong(); // Зупиняємо будь-яке поточне відтворення
+            stopSong();
             playlist = playlistService.findByName(playlistName);
 
             if (playlist != null && playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
                 trackIterator = new TrackIteratorImpl(playlist.getTracks());
 
-                // Знаходимо трек у плейлисті та встановлюємо позицію ітератора
+
                 boolean trackFound = false;
                 while (trackIterator.hasNext()) {
                     Track currentTrack = trackIterator.next();
                     if (currentTrack.getTitle().equalsIgnoreCase(trackTitle)) {
                         trackFound = true;
-                        playSong(currentTrack.getTitle()); // Починаємо відтворення треку
+                        playSong(currentTrack.getTitle());
                         break;
                     }
                 }
@@ -140,25 +140,25 @@ public class MusicPlayer {
 
     public void stopSong() {
         if (player != null) {
-            player.close(); // Зупиняємо відтворення
+            player.close();
             System.out.println("Song stopped.");
         }
         if (playThread != null && playThread.isAlive()) {
-            playThread.interrupt(); // Перериваємо потік, якщо він активний
+            playThread.interrupt();
         }
         track = null;
     }
     public void clearPlaylist() {
-        playlist = null;  // Очищаємо плейлист
-        trackIterator = null;  // Очищаємо ітератор
+        playlist = null;
+        trackIterator = null;
         out.println("Playlist cleared.");
     }
 
 
     public void pauseSong() {
         if (player != null && !isPaused) {
-            isPaused = true; // Ставимо стан паузи
-            player.close(); // Зупиняємо відтворення
+            isPaused = true;
+            player.close();
             pausedFrame = 300;
             System.out.println("Song paused at frame: " + pausedFrame);
         } else {
@@ -168,9 +168,9 @@ public class MusicPlayer {
 
     public void resumeSong() {
         if (isPaused) {
-            isPaused = false; // Скидаємо стан призупинення
+            isPaused = false;
 
-            playSong(track.getTitle()); // Відновлюємо відтворення
+            playSong(track.getTitle());
         } else {
             out.println("No song is currently paused.");
         }
@@ -214,8 +214,4 @@ public class MusicPlayer {
             out.println("No saved state available.");
         }
     }
-
-
-
-
 }

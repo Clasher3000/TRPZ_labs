@@ -97,9 +97,8 @@ public class Server {
                     restoreState.execute();
                     break;
                 case "exit":
-                    out.println("Goodbye!");
-                    s.close();
-                    ss.close();
+                    Command exitCommand = new ExitCommand(s, ss, musicPlayer, out);
+                    exitCommand.execute();
                     System.out.println("Connection closed.");
                     return;
                 default:
