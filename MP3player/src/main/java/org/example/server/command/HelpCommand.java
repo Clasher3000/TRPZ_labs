@@ -22,6 +22,8 @@ public class HelpCommand implements Command {
         out.println("add <track_title> <track path> - Add track.");
         out.println("create_playlist <playlist_name> - Create playlist");
         out.println("add_to_playlist <playlist_name>,<track_title> - Add track to the playlist");
+        out.println("save_state - Save current state.");
+        out.println("restore_state - Restore previous state.");
         out.println("exit - Disconnect from the server.");
     }
 }
