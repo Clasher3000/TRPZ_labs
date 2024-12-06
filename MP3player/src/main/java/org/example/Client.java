@@ -1,6 +1,5 @@
 package org.example;
 
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,15 +38,20 @@ public class Client {
             System.out.print("Enter command: ");
             String command = scanner.nextLine();  // Читання команди з консолі
 
-            // Перевірка на команду виходу
-            if (command.equalsIgnoreCase("exit")) {
-                out.println(command);  // Надсилаємо команду виходу на сервер
-                break;
-            }
-
             // Відправка команди на сервер
             out.println(command);
-            Thread.sleep(500);
+
+            if(command.equals("find_all") ) {
+                // Чекаємо на відповідь від сервера перед тим, як дозволити ввести нову команду
+                String serverMessage = in.readLine();  // Читаємо відповідь від сервера
+                System.out.println("Server: " + serverMessage);
+            }
+            // Перевірка на команду виходу
+            if (command.equalsIgnoreCase("exit")) {
+                break;  // Завершуємо програму
+            }
+
+            Thread.sleep(1000);  // Додаємо невелику затримку між відправкою команд
         }
 
         // Закриття ресурсів

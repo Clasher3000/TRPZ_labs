@@ -102,4 +102,28 @@ public class TrackRepository {
         entityManager.close();
     }
 
+    public List<Track> findAllTracks() {
+        EntityManager entityManager = sessionFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
+        List<Track> tracks;
+        try {
+            // Використання JPQL для отримання всіх треків
+            tracks = entityManager.createQuery("SELECT t FROM Track t", Track.class).getResultList();
+            if (tracks.isEmpty()) {
+                System.out.println("No tracks found.");
+            } else {
+                System.out.println("Tracks retrieved successfully.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error retrieving tracks: " + e.getMessage());
+            tracks = List.of(); // Повертаємо порожній список у разі помилки
+        }
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
+
+        return tracks;
+    }
+
 }

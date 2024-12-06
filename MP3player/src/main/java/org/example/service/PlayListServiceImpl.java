@@ -2,8 +2,17 @@ package org.example.service;
 
 import org.example.entity.Playlist;
 import org.example.repository.PlaylistRepository;
+import org.example.visitor.Element;
+import org.example.visitor.Visitor;
 
-public class PlayListServiceImpl implements PlaylistService{
+import java.util.List;
+
+public class PlayListServiceImpl implements PlaylistService {
+
+    @Override
+    public List<String> accept(Visitor visitor) {
+        return visitor.visitPlaylist(this);
+    }
 
     private PlaylistRepository playlistRepository;
 
@@ -19,5 +28,10 @@ public class PlayListServiceImpl implements PlaylistService{
     @Override
     public void create(String name) {
         playlistRepository.createPlaylist(name);
+    }
+
+    @Override
+    public List<Playlist> findAll() {
+        return playlistRepository.findAll();
     }
 }
