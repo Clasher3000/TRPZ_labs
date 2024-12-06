@@ -22,7 +22,7 @@ public class FindVisitor implements Visitor{
         for (Element element : args) {
             List<String> result = element.accept(this);
             for (String item : result) {
-                out.println(item); // Виводимо кожен елемент списку
+                out.println(item);
             }
         }
     }
