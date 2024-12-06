@@ -13,12 +13,15 @@ import org.example.service.PlayListServiceImpl;
 import org.example.service.PlaylistService;
 import org.example.service.TrackService;
 import org.example.service.TrackServiceImpl;
+import org.example.visitor.Element;
+import org.example.visitor.FindVisitor;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLOutput;
+import java.util.List;
 
 public class MusicPlayer {
     private TrackService trackService;
@@ -151,7 +154,6 @@ public class MusicPlayer {
     public void clearPlaylist() {
         playlist = null;
         trackIterator = null;
-        out.println("Playlist cleared.");
     }
 
 
@@ -213,5 +215,10 @@ public class MusicPlayer {
         } else {
             out.println("No saved state available.");
         }
+    }
+
+    public void findAllTracks(Element... args){
+        FindVisitor findVisitor = new FindVisitor(out);
+        findVisitor.findAll(args);
     }
 }

@@ -96,6 +96,10 @@ public class Server {
                     Command restoreState = new RestoreStateCommand(musicPlayer);
                     restoreState.execute();
                     break;
+                case "find_all":
+                    Command findAll = new FindAllCommand(musicPlayer,trackService,playlistService);
+                    findAll.execute();
+                    break;
                 case "exit":
                     Command exitCommand = new ExitCommand(s, ss, musicPlayer, out);
                     exitCommand.execute();
