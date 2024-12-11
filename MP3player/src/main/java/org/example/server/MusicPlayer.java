@@ -5,6 +5,8 @@ import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.advanced.AdvancedPlayer;
 import org.example.entity.Playlist;
 import org.example.entity.Track;
+import org.example.server.comparator.TrackPositionComparator;
+import org.example.server.exception.ResourceNotFoundException;
 import org.example.server.iterator.TrackIterator;
 import org.example.server.iterator.TrackIteratorImpl;
 import org.example.server.memento.Caretaker;
@@ -16,11 +18,9 @@ import org.example.service.TrackServiceImpl;
 import org.example.visitor.Element;
 import org.example.visitor.FindVisitor;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.sql.SQLOutput;
+import java.util.Collections;
 import java.util.List;
 
 public class MusicPlayer {
@@ -36,9 +36,9 @@ public class MusicPlayer {
     private TrackIterator trackIterator;
     private final Caretaker caretaker = new Caretaker();
 
-    public MusicPlayer(PrintWriter out) {
-        this.trackService = new TrackServiceImpl();
-        this.playlistService = new PlayListServiceImpl();
+    public MusicPlayer(PrintWriter out,TrackService trackService, PlaylistService playlistService) {
+        this.trackService = trackService;
+        this.playlistService = playlistService;
         this.out = out;
     }
 
@@ -71,19 +71,17 @@ public class MusicPlayer {
 
 
     public void playPlaylist(String playlistName) {
-        try {
             playlist = playlistService.findByName(playlistName);
-            if (playlist != null && playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
-                trackIterator = new TrackIteratorImpl(playlist.getTracks());
 
+            List<Track> tracks = playlist.getTracks();
+            if (playlist != null && tracks != null && !tracks.isEmpty()) {
+                Collections.sort(tracks, new TrackPositionComparator());
+                trackIterator = new TrackIteratorImpl(tracks);
                 playNextTrackInPlaylist();
                 out.println("Playlist: " + playlistName + " is playing");
             } else {
                 out.println("Playlist is empty or does not exist.");
             }
-        } catch (NoResultException e) {
-            out.println("Incorrect playlist name");
-        }
     }
 
     public synchronized void playNextTrackInPlaylist() {
@@ -109,7 +107,7 @@ public class MusicPlayer {
     }
 
     public void playPlaylistOnTrack(String playlistName, String trackTitle) {
-        try {
+
             stopSong();
             playlist = playlistService.findByName(playlistName);
 
@@ -135,9 +133,6 @@ public class MusicPlayer {
             } else {
                 out.println("Playlist " + playlistName + " is empty or does not exist.");
             }
-        } catch (NoResultException e) {
-            out.println("Playlist " + playlistName + " not found.");
-        }
     }
 
 
@@ -215,6 +210,12 @@ public class MusicPlayer {
         } else {
             out.println("No saved state available.");
         }
+    }
+
+    public void shufflePlaylist(String playlistName) {
+
+            playlistService.shufflePlaylistTracks(playlistName);
+
     }
 
     public void findAllTracks(Element... args){

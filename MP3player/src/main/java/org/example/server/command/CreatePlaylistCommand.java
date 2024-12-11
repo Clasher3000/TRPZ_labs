@@ -21,7 +21,6 @@ public class CreatePlaylistCommand implements Command{
     public void execute() {
         if (name != null && !name.isEmpty()) {
             playlistService.create(name);
-            out.println("Playlist created: " + name);
         } else {
             out.println("Please provide both title and file path for the track.");
         }

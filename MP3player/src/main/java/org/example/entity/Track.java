@@ -28,6 +28,11 @@ public class Track {
     public Track() {
     }
 
+    public Track(String title, String path) {
+        this.title = title;
+        this.path = path;
+    }
+
     public Track(String title, String path, int position) {
         this.title = title;
         this.path = path;

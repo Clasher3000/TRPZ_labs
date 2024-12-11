@@ -13,4 +13,7 @@ public interface PlaylistService extends Element {
 
     List<Playlist> findAll();
 
+    void shufflePlaylistTracks(String playlistName);
+
+    void deletePlaylist(String name);
 }

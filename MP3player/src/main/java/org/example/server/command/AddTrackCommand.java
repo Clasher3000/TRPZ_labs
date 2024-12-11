@@ -22,7 +22,6 @@ public class AddTrackCommand implements Command {
     public void execute() {
         if (title != null && !title.isEmpty() && filePath != null && !filePath.isEmpty()) {
             trackService.addTrack(title, filePath); // Додаємо трек у сховище
-            System.out.println("Track added: " + title + " (" + filePath + ")");
         } else {
             out.println("Please provide both title and file path for the track.");
         }

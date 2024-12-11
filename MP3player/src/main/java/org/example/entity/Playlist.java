@@ -13,7 +13,7 @@ public class Playlist {
     private String name;
 
     @OneToMany(mappedBy = "playlist",
-    cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH}, fetch = FetchType.EAGER)
     private List<Track> tracks;
 
     public Playlist() {
