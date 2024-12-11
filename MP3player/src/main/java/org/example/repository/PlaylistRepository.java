@@ -15,6 +15,8 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
+import java.util.List;
+
 public class PlaylistRepository {
     private SessionFactory sessionFactory;
     public PlaylistRepository() {
@@ -70,5 +72,30 @@ public class PlaylistRepository {
         entityManager.persist(playlist);
 
         entityManager.getTransaction().commit();
+    }
+
+    public List<Playlist> findAll() {
+        EntityManager entityManager = sessionFactory.createEntityManager();
+        entityManager.getTransaction().begin();
+
+        List<Playlist> playlists;
+        try {
+            // Використання JPQL для отримання всіх треків
+            playlists = entityManager.createQuery("SELECT p FROM Playlist p", Playlist.class).getResultList();
+            if (playlists.isEmpty()) {
+                System.out.println("No tracks found.");
+            } else {
+                System.out.println("Playlists retrieved successfully.");
+            }
+        } catch (Exception e) {
+            System.out.println("Error retrieving tracks: " + e.getMessage());
+            playlists = List.of(); // Повертаємо порожній список у разі помилки
+        }
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
+
+        return playlists;
+
     }
 }
