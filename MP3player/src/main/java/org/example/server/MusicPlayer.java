@@ -35,6 +35,7 @@ public class MusicPlayer {
     private boolean isPaused = false;
     private TrackIterator trackIterator;
     private final Caretaker caretaker = new Caretaker();
+    private boolean isRepeatEnabled = false;
 
     public MusicPlayer(PrintWriter out,TrackService trackService, PlaylistService playlistService) {
         this.trackService = trackService;
@@ -70,20 +71,6 @@ public class MusicPlayer {
     }
 
 
-    public void playPlaylist(String playlistName) {
-            playlist = playlistService.findByName(playlistName);
-
-            List<Track> tracks = playlist.getTracks();
-            if (playlist != null && tracks != null && !tracks.isEmpty()) {
-                Collections.sort(tracks, new TrackPositionComparator());
-                trackIterator = new TrackIteratorImpl(tracks);
-                playNextTrackInPlaylist();
-                out.println("Playlist: " + playlistName + " is playing");
-            } else {
-                out.println("Playlist is empty or does not exist.");
-            }
-    }
-
     public synchronized void playNextTrackInPlaylist() {
         if (player != null) {
             stopSong();
@@ -92,8 +79,30 @@ public class MusicPlayer {
         if (trackIterator != null && trackIterator.hasNext()) {
             Track nextTrack = trackIterator.next();
             playSong(nextTrack.getTitle());
+        } else if (isRepeatEnabled && playlist != null) {
+            // Якщо увімкнено повторення, починаємо плейлист спочатку
+            trackIterator = new TrackIteratorImpl(playlist.getTracks());
+            if (trackIterator.hasNext()) {
+                Track firstTrack = trackIterator.next();
+                playSong(firstTrack.getTitle());
+            }
         } else {
             out.println("There are no more tracks.");
+        }
+    }
+
+    // Модифікуємо playPlaylist для врахування повторення
+    public void playPlaylist(String playlistName) {
+        playlist = playlistService.findByName(playlistName);
+
+        List<Track> tracks = playlist.getTracks();
+        if (playlist != null && tracks != null && !tracks.isEmpty()) {
+            Collections.sort(tracks, new TrackPositionComparator());
+            trackIterator = new TrackIteratorImpl(tracks);
+            playNextTrackInPlaylist();
+            out.println("Playlist: " + playlistName + " is playing");
+        } else {
+            out.println("Playlist is empty");
         }
     }
 
@@ -221,5 +230,14 @@ public class MusicPlayer {
     public void findAllTracks(Element... args){
         FindVisitor findVisitor = new FindVisitor(out);
         findVisitor.findAll(args);
+    }
+
+    public void toggleRepeat() {
+        isRepeatEnabled = !isRepeatEnabled;
+        if (isRepeatEnabled) {
+            out.println("Repeat is enabled.");
+        } else {
+            out.println("Repeat is disabled.");
+        }
     }
 }

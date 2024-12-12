@@ -16,4 +16,6 @@ public interface TrackService extends Element{
     List<Track> findAll();
 
     void deleteTrack(String title);
+
+    void deleteTrackFromPlaylist(String title);
 }

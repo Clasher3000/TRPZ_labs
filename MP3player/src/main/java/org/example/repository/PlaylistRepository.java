@@ -9,20 +9,25 @@ import jakarta.persistence.criteria.Root;
 import org.example.entity.Playlist;
 import org.example.entity.Playlist_;
 import org.example.entity.Track;
-import org.example.entity.Track_;
 import org.example.server.exception.ResourceNotFoundException;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
 
 public class PlaylistRepository {
-    private SessionFactory sessionFactory;
-    public PlaylistRepository() {
+
+    private PrintWriter out;
+
+    private final SessionFactory sessionFactory;
+
+    public PlaylistRepository(PrintWriter out) {
+
+        this.out = out;
         // Ініціалізація SessionFactory в конструкторі
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
                 .configure() // конфігурація з hibernate.cfg.xml
@@ -35,7 +40,6 @@ public class PlaylistRepository {
             StandardServiceRegistryBuilder.destroy(registry);
             throw new RuntimeException("Не вдалося створити SessionFactory", e);
         }
-
     }
 
     public void close() {
@@ -44,18 +48,17 @@ public class PlaylistRepository {
         }
     }
 
-    public Session openSession() {
-        return sessionFactory.openSession();
+    private EntityManager getEntityManager() {
+        return sessionFactory.createEntityManager();
     }
 
     public Playlist getPlaylistByName(String name) {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-
+        EntityManager entityManager = getEntityManager();
         try {
-            String jpql = "SELECT p FROM Playlist p WHERE p.name = :name";
-            return entityManager.createQuery(jpql, Playlist.class)
-                    .setParameter("name", name)
-                    .getSingleResult();
+            TypedQuery<Playlist> query = entityManager.createQuery(
+                    "SELECT p FROM Playlist p WHERE p.name = :name", Playlist.class);
+            query.setParameter("name", name);
+            return query.getSingleResult();
         } catch (NoResultException e) {
             throw new ResourceNotFoundException("Playlist", name);
         } finally {
@@ -63,73 +66,56 @@ public class PlaylistRepository {
         }
     }
 
-    public void createPlaylist(String name){
-        Playlist playlist = new Playlist(name);
-
-        EntityManager entityManager = sessionFactory.createEntityManager();
-
-        entityManager.getTransaction().begin();
-        entityManager.persist(playlist);
-        entityManager.getTransaction().commit();
+    public void createPlaylist(String name) {
+        EntityManager entityManager = getEntityManager();
+        try {
+            entityManager.getTransaction().begin();
+            Playlist playlist = new Playlist(name);
+            entityManager.persist(playlist);
+            entityManager.getTransaction().commit();
+            System.out.println("Playlist created successfully: " + name);
+        } finally {
+            entityManager.close();
+        }
     }
 
     public List<Playlist> findAll() {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
-        List<Playlist> playlists;
+        EntityManager entityManager = getEntityManager();
         try {
-            // Використання JPQL для отримання всіх треків
-            playlists = entityManager.createQuery("SELECT p FROM Playlist p", Playlist.class).getResultList();
-            if (playlists.isEmpty()) {
-                System.out.println("No tracks found.");
-            } else {
-                System.out.println("Playlists retrieved successfully.");
-            }
+            return entityManager.createQuery("SELECT p FROM Playlist p", Playlist.class).getResultList();
         } catch (Exception e) {
-            System.out.println("Error retrieving tracks: " + e.getMessage());
-            playlists = List.of(); // Повертаємо порожній список у разі помилки
+            System.out.println("Error retrieving playlists: " + e.getMessage());
+            return List.of();
+        } finally {
+            entityManager.close();
         }
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        return playlists;
-
     }
 
     public void shufflePlaylistTracks(String playlistName) {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-
+        EntityManager entityManager = getEntityManager();
         try {
             entityManager.getTransaction().begin();
 
             // Отримуємо плейлист за назвою
-            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-            CriteriaQuery<Playlist> criteriaQuery = criteriaBuilder.createQuery(Playlist.class);
-            Root<Playlist> root = criteriaQuery.from(Playlist.class);
-            criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Playlist_.NAME), playlistName));
+            TypedQuery<Playlist> query = entityManager.createQuery(
+                    "SELECT p FROM Playlist p WHERE p.name = :name", Playlist.class);
+            query.setParameter("name", playlistName);
 
-            TypedQuery<Playlist> query = entityManager.createQuery(criteriaQuery);
             Playlist playlist = query.getSingleResult();
 
             if (playlist != null && playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
-                // Отримуємо треки і перемішуємо їхні позиції
                 List<Track> tracks = playlist.getTracks();
                 Collections.shuffle(tracks);
 
                 for (int i = 0; i < tracks.size(); i++) {
-                    tracks.get(i).setPosition(i + 1); // Присвоюємо нові позиції
-                    entityManager.merge(tracks.get(i)); // Зберігаємо зміни для кожного треку
+                    tracks.get(i).setPosition(i + 1);
+                    entityManager.merge(tracks.get(i));
                 }
-
-                System.out.println("Tracks in playlist \"" + playlistName + "\" have been shuffled based on their positions.");
+               out.println("Tracks in playlist \"" + playlistName + "\" shuffled successfully.");
             } else {
-                System.out.println("Playlist is empty or does not exist.");
+                out.println("Playlist is empty");
             }
-
             entityManager.getTransaction().commit();
-
         } catch (NoResultException e) {
             throw new ResourceNotFoundException("Playlist", playlistName);
         } finally {
@@ -138,18 +124,24 @@ public class PlaylistRepository {
     }
 
     public void deletePlaylist(String name) {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        EntityManager entityManager = getEntityManager();
+        try {
+            entityManager.getTransaction().begin();
 
-        // Find track by title
-        Playlist playlist = entityManager.createQuery("SELECT p FROM Playlist p WHERE p.name = :name", Playlist.class)
-                .setParameter("name", name)
-                .getSingleResult();
+            TypedQuery<Playlist> query = entityManager.createQuery(
+                    "SELECT p FROM Playlist p WHERE p.name = :name", Playlist.class);
+            query.setParameter("name", name);
 
+            Playlist playlist = query.getSingleResult();
             entityManager.remove(playlist);
-            System.out.println("Playlist with name '" + playlist + "' has been deleted.");
 
-        entityManager.getTransaction().commit();
-        entityManager.close();
+            out.println("Playlist with name '" + name + "' has been deleted.");
+
+            entityManager.getTransaction().commit();
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("Playlist", name);
+        } finally {
+            entityManager.close();
+        }
     }
 }

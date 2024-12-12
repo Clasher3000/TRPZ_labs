@@ -25,7 +25,7 @@ public class TrackServiceImpl implements TrackService {
 
     public TrackServiceImpl(PrintWriter out) {
         this.playlistService = new PlayListServiceImpl(out);
-        this.trackRepository = new TrackRepository();
+        this.trackRepository = new TrackRepository(out);
         this.out = out;
     }
 
@@ -41,20 +41,21 @@ public class TrackServiceImpl implements TrackService {
 
     @Override
     public void addTrack(String title, String path) {
-        if (doesTrackExist(title)) {
-            throw new ResourceAlreadyExistsException("Track", title);
-        }
         trackRepository.saveTrack(title, path);
-        out.println("Track added: " + title + " (" + path + ")");
     }
     public void addTrackToPlaylist(String playlistName, String trackTitle) {
+        try {
             Track track = trackRepository.getTrackByTitle(trackTitle);
             Playlist playlist = playlistService.findByName(playlistName);
-            trackRepository.addTrackToPlaylist(track,playlist);
+            trackRepository.addTrackToPlaylist(track, playlist);
+        }
+        catch (NoResultException e){
+            throw new ResourceNotFoundException("Track or Playlist", playlistName + "|"+  trackTitle);
+        }
     }
 
     public List<Track> findAll() {
-        return trackRepository.findAllTracks();
+        return trackRepository.getAll();
     }
 
     @Override
@@ -64,6 +65,11 @@ public class TrackServiceImpl implements TrackService {
         }
         trackRepository.deleteTrack(title);
         out.println("Track deleted: " + title);
+    }
+
+    @Override
+    public void deleteTrackFromPlaylist(String title) {
+        trackRepository.deleteTrackFromPlaylist(title);
     }
 
     private boolean doesTrackExist(String trackTitle) {

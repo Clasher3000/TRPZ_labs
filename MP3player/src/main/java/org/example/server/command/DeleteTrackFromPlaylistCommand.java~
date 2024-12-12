@@ -1,0 +1,2 @@
+package org.example.server.command;public class DeleteFromPlaylistCommand {
+}

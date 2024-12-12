@@ -9,22 +9,24 @@ import jakarta.persistence.criteria.Root;
 import org.example.entity.Playlist;
 import org.example.entity.Track;
 import org.example.entity.Track_;
+import org.example.server.exception.ResourceNotFoundException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 public class TrackRepository {
 
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
+    private final PrintWriter out;
 
-    public TrackRepository() {
-        // Ініціалізація SessionFactory в конструкторі
+    public TrackRepository(PrintWriter out) {
         final StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
-                .configure() // конфігурація з hibernate.cfg.xml
+                .configure()
                 .build();
         try {
             sessionFactory = new MetadataSources(registry)
@@ -34,7 +36,7 @@ public class TrackRepository {
             StandardServiceRegistryBuilder.destroy(registry);
             throw new RuntimeException("Не вдалося створити SessionFactory", e);
         }
-
+        this.out = out;
     }
 
     public void close() {
@@ -43,135 +45,125 @@ public class TrackRepository {
         }
     }
 
-    public Session openSession() {
-        return sessionFactory.openSession();
+    private EntityManager getEntityManager() {
+        return sessionFactory.createEntityManager();
     }
 
     public List<Track> getAll() {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
-        List<Track> tracks = entityManager.createQuery("SELECT t from Track t", Track.class).getResultList();
-
-        entityManager.getTransaction().commit();
-        return tracks;
+        EntityManager entityManager = getEntityManager();
+        try {
+            return entityManager.createQuery("SELECT t FROM Track t", Track.class).getResultList();
+        } finally {
+            entityManager.close();
+        }
     }
 
     public Track getTrackByTitle(String title) {
+        EntityManager entityManager = getEntityManager();
+        try {
+            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+            CriteriaQuery<Track> criteriaQuery = criteriaBuilder.createQuery(Track.class);
+            Root<Track> root = criteriaQuery.from(Track.class);
+            criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Track_.TITLE), title));
 
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-
-        CriteriaQuery<Track> criteriaQuery = criteriaBuilder.createQuery(Track.class);
-        Root<Track> root = criteriaQuery.from(Track.class);
-        criteriaQuery.select(root).where(criteriaBuilder.equal(root.get(Track_.TITLE), title));
-
-        TypedQuery<Track> query = entityManager.createQuery(criteriaQuery);
-        Track result = query.getSingleResult();
-
-
-        entityManager.close();
-        return result;
+            return entityManager.createQuery(criteriaQuery).getSingleResult();
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("Track", title);
+        } finally {
+            entityManager.close();
+        }
     }
 
-    public void saveTrack(String title, String path){
-            Track track = new Track(title, path);
-
-            EntityManager entityManager = sessionFactory.createEntityManager();
-
-
+    public void saveTrack(String title, String path) {
+        EntityManager entityManager = getEntityManager();
+        try {
             entityManager.getTransaction().begin();
-
+            Track track = new Track(title, path);
             entityManager.persist(track);
-
             entityManager.getTransaction().commit();
+            out.println("Track saved successfully: " + title);
+        } finally {
+            entityManager.close();
+        }
     }
 
     public void addTrackToPlaylist(Track track, Playlist playlist) {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
-        if (playlist != null && track != null) {
-            // Спочатку перевіряємо, чи є треки в плейлисті
-            List<Track> tracks = entityManager.createQuery("SELECT t FROM Track t WHERE t.playlist = :playlist", Track.class)
-                    .setParameter("playlist", playlist)
-                    .getResultList();
-
-            int newPosition;
-            if (!tracks.isEmpty()) {
-                // Якщо треки є, знаходимо останній і присвоюємо новій пісні позицію
-                Track lastTrack = tracks.get(tracks.size() - 1);
-                newPosition = lastTrack.getPosition() + 1;
-            } else {
-                // Якщо немає треків, присвоюємо позицію 1
-                newPosition = 1;
-            }
-
-            track.setPlaylist(playlist);
-            track.setPosition(newPosition);  // Встановлюємо нову позицію
-
-            // Оновлюємо або зберігаємо трек
-            entityManager.merge(track);
-            System.out.println("Track added with position: " + newPosition);
-        } else {
-            System.out.println("Playlist or Track not found.");
-        }
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-    }
-
-
-    public List<Track> findAllTracks() {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
-
-        List<Track> tracks;
+        EntityManager entityManager = getEntityManager();
         try {
-            // Використання JPQL для отримання всіх треків
-            tracks = entityManager.createQuery("SELECT t FROM Track t", Track.class).getResultList();
-            if (tracks.isEmpty()) {
-                System.out.println("No tracks found.");
+            entityManager.getTransaction().begin();
+
+            if (track != null && playlist != null) {
+                int newPosition = getLastTrackPosition(entityManager, playlist) + 1;
+                track.setPlaylist(playlist);
+                track.setPosition(newPosition);
+                entityManager.merge(track);
+                out.println("Track \"" + track.getTitle() + "\" added to playlist \"" + playlist.getName() + "\" at position " + newPosition);
             } else {
-                System.out.println("Tracks retrieved successfully.");
+                out.println("Track or playlist not found.");
             }
-        } catch (Exception e) {
-            System.out.println("Error retrieving tracks: " + e.getMessage());
-            tracks = List.of(); // Повертаємо порожній список у разі помилки
+
+            entityManager.getTransaction().commit();
+        } finally {
+            entityManager.close();
         }
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
-
-        return tracks;
     }
 
+    private int getLastTrackPosition(EntityManager entityManager, Playlist playlist) {
+        List<Track> tracks = entityManager.createQuery(
+                        "SELECT t FROM Track t WHERE t.playlist = :playlist ORDER BY t.position DESC", Track.class)
+                .setParameter("playlist", playlist)
+                .getResultList();
+
+        return tracks.isEmpty() ? 0 : tracks.get(0).getPosition();
+    }
 
     public void deleteTrack(String title) {
-        EntityManager entityManager = sessionFactory.createEntityManager();
-        entityManager.getTransaction().begin();
+        EntityManager entityManager = getEntityManager();
+        try {
+            entityManager.getTransaction().begin();
 
-            // Find track by title
             Track track = entityManager.createQuery("SELECT t FROM Track t WHERE t.title = :title", Track.class)
                     .setParameter("title", title)
                     .getSingleResult();
 
             if (track != null) {
-                // If the track is associated with a playlist, disassociate it
-                if (track.getPlaylist() != null) {
-                    track.setPlaylist(null); // Break the association with the playlist
-                }
-
-                // Now safely delete the track
+                track.setPlaylist(null);
                 entityManager.remove(track);
-                System.out.println("Track with title '" + title + "' has been deleted.");
+                out.println("Track with title \"" + title + "\" has been deleted.");
             } else {
-                System.out.println("Track with title '" + title + "' not found.");
+                out.println("Track with title \"" + title + "\" not found.");
             }
 
-        entityManager.getTransaction().commit();
-        entityManager.close();
+            entityManager.getTransaction().commit();
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("Track", title);
+        } finally {
+            entityManager.close();
+        }
     }
 
+    public void deleteTrackFromPlaylist(String title) {
+        EntityManager entityManager = getEntityManager();
+        try {
+            entityManager.getTransaction().begin();
 
+            Track track = entityManager.createQuery("SELECT t FROM Track t WHERE t.title = :title", Track.class)
+                    .setParameter("title", title)
+                    .getSingleResult();
+
+            if (track != null && track.getPlaylist() != null) {
+                track.setPlaylist(null);
+                entityManager.merge(track);
+                out.println("Track \"" + title + "\" removed from playlist.");
+            } else if (track != null) {
+                out.println("Track \"" + title + "\" is not associated with any playlist.");
+            }
+
+            entityManager.getTransaction().commit();
+        } catch (NoResultException e) {
+            throw new ResourceNotFoundException("Track", title);
+        } finally {
+            entityManager.close();
+        }
+    }
 }

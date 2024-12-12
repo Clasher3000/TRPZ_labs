@@ -108,6 +108,10 @@ public class Server {
                         Command shuffle = new ShuffleCommand(musicPlayer, arguments[0]);
                         shuffle.execute();
                         break;
+                    case "repeat":
+                        Command repeat = new RepeatCommand(musicPlayer);
+                        repeat.execute();
+                        break;
                     case "delete_track":
                         Command deleteTrack = new DeleteTrackCommand(trackService, arguments[0], out);
                         deleteTrack.execute();
@@ -115,6 +119,10 @@ public class Server {
                     case "delete_playlist":
                         Command deletePlaylist = new DeletePlaylistCommand(playlistService, arguments[0], out);
                         deletePlaylist.execute();
+                        break;
+                    case "delete_from_playlist":
+                        Command deleteFromPlaylist = new DeleteTrackFromPlaylistCommand(trackService, arguments[0]);
+                        deleteFromPlaylist.execute();
                         break;
                     case "exit":
                         Command exitCommand = new ExitCommand(s, ss, musicPlayer, out);

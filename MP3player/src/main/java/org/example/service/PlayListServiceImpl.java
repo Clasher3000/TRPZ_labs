@@ -25,7 +25,7 @@ public class PlayListServiceImpl implements PlaylistService {
     private PlaylistRepository playlistRepository;
 
     public PlayListServiceImpl(PrintWriter out) {
-        this.playlistRepository = new PlaylistRepository();
+        this.playlistRepository = new PlaylistRepository(out);
         this.out = out;
     }
 
@@ -61,7 +61,6 @@ public class PlayListServiceImpl implements PlaylistService {
     @Override
     public void deletePlaylist(String name) {
         playlistRepository.deletePlaylist(name);
-        out.println("Playlist deleted: " + name);
     }
 
     private boolean doesPlaylistExist(String playlistName) {
@@ -72,8 +71,6 @@ public class PlayListServiceImpl implements PlaylistService {
             return false;  // Якщо трек не знайдено, повертаємо false
         }
     }
-
-
     }
 
 
