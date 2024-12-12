@@ -3,10 +3,10 @@ package org.example.server;
 import org.example.server.command.*;
 import org.example.server.exception.ResourceAlreadyExistsException;
 import org.example.server.exception.ResourceNotFoundException;
-import org.example.service.PlayListServiceImpl;
-import org.example.service.PlaylistService;
-import org.example.service.TrackService;
-import org.example.service.TrackServiceImpl;
+import org.example.server.service.PlayListServiceImpl;
+import org.example.server.service.PlaylistService;
+import org.example.server.service.TrackService;
+import org.example.server.service.TrackServiceImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,6 @@
 package org.example.server.comparator;
 
-import org.example.entity.Track;
+import org.example.server.entity.Track;
 
 import java.util.Comparator;
 

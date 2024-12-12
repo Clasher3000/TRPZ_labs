@@ -1,7 +1,7 @@
 package org.example.server.memento;
 
-import org.example.entity.Playlist;
-import org.example.entity.Track;
+import org.example.server.entity.Playlist;
+import org.example.server.entity.Track;
 import org.example.server.MusicPlayer;
 
 import java.util.Stack;

@@ -1,16 +1,13 @@
-package org.example.service;
+package org.example.server.service;
 
 import jakarta.persistence.NoResultException;
-import org.example.entity.Playlist;
-import org.example.entity.Track;
-import org.example.repository.PlaylistRepository;
+import org.example.server.entity.Playlist;
+import org.example.server.repository.PlaylistRepository;
 import org.example.server.exception.ResourceAlreadyExistsException;
 import org.example.server.exception.ResourceNotFoundException;
-import org.example.visitor.Element;
-import org.example.visitor.Visitor;
+import org.example.server.visitor.Visitor;
 
 import java.io.PrintWriter;
-import java.util.Collections;
 import java.util.List;
 
 public class PlayListServiceImpl implements PlaylistService {

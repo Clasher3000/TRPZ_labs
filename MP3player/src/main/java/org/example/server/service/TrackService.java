@@ -1,7 +1,7 @@
-package org.example.service;
+package org.example.server.service;
 
-import org.example.entity.Track;
-import org.example.visitor.Element;
+import org.example.server.entity.Track;
+import org.example.server.visitor.Element;
 
 import java.util.List;
 

@@ -1,7 +1,6 @@
 package org.example.server.iterator;
 
-import org.example.entity.Playlist;
-import org.example.entity.Track;
+import org.example.server.entity.Playlist;
 
 import java.util.List;
 

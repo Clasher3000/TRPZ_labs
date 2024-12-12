@@ -21,7 +21,7 @@
         <property name="hibernate.format_sql">true</property>      <!-- Форматовані SQL-запити -->
 
         <!-- Mapping classes -->
-        <mapping class="org.example.entity.Track"/>
-        <mapping class="org.example.entity.Playlist"/>
+        <mapping class="org.example.server.entity.Track"/>
+        <mapping class="org.example.server.entity.Playlist"/>
     </session-factory>
 </hibernate-configuration>

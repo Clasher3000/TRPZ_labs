@@ -1,16 +1,14 @@
-package org.example.repository;
+package org.example.server.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import org.example.entity.Playlist;
-import org.example.entity.Track;
+import org.example.server.entity.Playlist;
+import org.example.server.entity.Track;
 import org.example.entity.Track_;
 import org.example.server.exception.ResourceNotFoundException;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;

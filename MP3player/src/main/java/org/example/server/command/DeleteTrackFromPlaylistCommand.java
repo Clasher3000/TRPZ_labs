@@ -1,6 +1,6 @@
 package org.example.server.command;
 
-import org.example.service.TrackService;
+import org.example.server.service.TrackService;
 
 public class DeleteTrackFromPlaylistCommand implements Command{
 

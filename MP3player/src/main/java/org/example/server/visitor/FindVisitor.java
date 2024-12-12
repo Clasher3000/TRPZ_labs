@@ -1,9 +1,9 @@
-package org.example.visitor;
+package org.example.server.visitor;
 
-import org.example.entity.Playlist;
-import org.example.entity.Track;
-import org.example.service.PlaylistService;
-import org.example.service.TrackService;
+import org.example.server.entity.Playlist;
+import org.example.server.entity.Track;
+import org.example.server.service.PlaylistService;
+import org.example.server.service.TrackService;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;

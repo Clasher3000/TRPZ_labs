@@ -1,6 +1,6 @@
 package org.example.server.iterator;
 
-import org.example.entity.Track;
+import org.example.server.entity.Track;
 
 public interface TrackIterator{
     boolean hasNext();

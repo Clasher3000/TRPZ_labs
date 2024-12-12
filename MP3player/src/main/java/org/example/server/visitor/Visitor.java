@@ -1,7 +1,7 @@
-package org.example.visitor;
+package org.example.server.visitor;
 
-import org.example.service.PlaylistService;
-import org.example.service.TrackService;
+import org.example.server.service.PlaylistService;
+import org.example.server.service.TrackService;
 
 import java.util.List;
 
