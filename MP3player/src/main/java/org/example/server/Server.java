@@ -56,6 +56,10 @@ public class Server {
                         Command playCommand = new PlayCommand(musicPlayer, arguments[0], out);
                         playCommand.execute();
                         break;
+                    case "radio":
+                        Command radioCommand = new RadioCommand(musicPlayer, arguments[0], out);
+                        radioCommand.execute();
+                        break;
                     case "pause":
                         Command pauseCommand = new PauseCommand(musicPlayer, out);
                         pauseCommand.execute();

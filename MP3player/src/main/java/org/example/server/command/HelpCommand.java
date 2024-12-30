@@ -13,7 +13,8 @@ public class HelpCommand implements Command {
     @Override
     public void execute() {
         out.println("Commands:");
-        out.println("play <track_title> - Play a specific track.");
+        out.println("play <track_title | track_url> - Play a specific track.");
+        out.println("radio <?radio_name> - Play a radio. Radio names: KEXP, HitFM, Rocks, ClassicFM, Paradise.");
         out.println("stop - Stop the current track.");
         out.println("pause - Pause the current track.");
         out.println("resume - Resume the current track.");

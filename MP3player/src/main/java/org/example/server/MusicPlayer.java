@@ -16,6 +16,8 @@ import org.example.server.visitor.Element;
 import org.example.server.visitor.FindVisitor;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,6 +44,11 @@ public class MusicPlayer {
     public void playSong(String fileName) {
         stopSong();
 
+        if (fileName.startsWith("http://") || fileName.startsWith("https://")) {
+            playStream(fileName);
+            return;
+        }
+
         playThread = new Thread(() -> {
             try {
                 track = trackService.findByTitle(fileName);
@@ -60,6 +67,50 @@ public class MusicPlayer {
                 out.println("Incorrect track title");
             } catch (JavaLayerException | IOException e) {
                 out.println("Error playing song: " + e.getMessage());
+            }
+        });
+
+        playThread.start();
+    }
+
+    public void playStream(String streamUrl) {
+        stopSong();
+
+        playThread = new Thread(() -> {
+            try {
+                // Підключення до URL
+                URL url = new URL(streamUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                InputStream inputStream = connection.getInputStream();
+
+                // Буферизуємо аудіопотік
+                BufferedInputStream bis = new BufferedInputStream(inputStream);
+
+                // Використовуємо AdvancedPlayer для відтворення потоку
+                player = new AdvancedPlayer(bis);
+                out.println("Streaming from: " + streamUrl);
+                player.play();
+            } catch (IOException | JavaLayerException e) {
+                out.println("Error streaming audio: " + e.getMessage());
+            }
+        });
+
+        playThread.start();
+    }
+
+    public void playRadio(String radioUrl) {
+        stopSong(); // Зупиняємо поточний трек, якщо щось грає
+
+        playThread = new Thread(() -> {
+            try {
+                // Створюємо потік для радіо
+                InputStream radioStream = new BufferedInputStream(new URL(radioUrl).openStream());
+                player = new AdvancedPlayer(radioStream);
+                player.play();
+
+            } catch (JavaLayerException | IOException e) {
+                out.println("Error playing radio: " + e.getMessage());
             }
         });
 
@@ -101,6 +152,7 @@ public class MusicPlayer {
             out.println("Playlist is empty");
         }
     }
+
 
     public void playPreviousTrackInPlaylist() {
         if (trackIterator != null && trackIterator.hasPrevious()) {
