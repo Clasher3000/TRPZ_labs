@@ -73,7 +73,7 @@ public class MusicPlayer {
         playThread.start();
     }
 
-    public void playStream(String streamUrl) {
+    private void playStream(String streamUrl) {
         stopSong();
 
         playThread = new Thread(() -> {
@@ -119,10 +119,6 @@ public class MusicPlayer {
 
 
     public synchronized void playNextTrackInPlaylist() {
-        if (player != null) {
-            stopSong();
-        }
-
         if (trackIterator != null && trackIterator.hasNext()) {
             Track nextTrack = trackIterator.next();
             playSong(nextTrack.getTitle());
@@ -132,11 +128,14 @@ public class MusicPlayer {
             if (trackIterator.hasNext()) {
                 Track firstTrack = trackIterator.next();
                 playSong(firstTrack.getTitle());
+            } else {
+                out.println("Playlist is empty.");
             }
         } else {
             out.println("There are no more tracks.");
         }
     }
+
 
     // Модифікуємо playPlaylist для врахування повторення
     public void playPlaylist(String playlistName) {

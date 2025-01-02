@@ -13,10 +13,12 @@ public class Client {
         // Підключення до сервера
         Socket socket = new Socket("localhost", 4999);
 
+
         // Створюємо потоки для надсилання та отримання даних
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);  // Для надсилання
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));  // Для отримання
 
+        System.out.println("Welcome to music player. Write 'help' to see available commands.");
         // Запускаємо окремий потік для отримання повідомлень від сервера
         Thread receiveThread = new Thread(() -> {
             try {

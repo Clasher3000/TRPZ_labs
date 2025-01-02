@@ -12,7 +12,6 @@ public class RadioCommand implements Command {
     private PrintWriter out;
 
     private String[] stations = {
-            "KEXP",
             "HitFM",
             "Rocks",
             "ClassicFM",
@@ -20,7 +19,6 @@ public class RadioCommand implements Command {
     };
 
     private String[] stationUrls = {
-            "http://live-aacplus-64.kexp.org/kexp64.aac",
             "http://online.hitfm.ua/HitFM",
             "http://online.radioroks.ua/RadioROKS",
             "http://media-ice.musicradio.com/ClassicFMMP3",
@@ -39,10 +37,6 @@ public class RadioCommand implements Command {
 
         if (name != null && !name.isEmpty()) {
             switch (name) {
-                case "KEXP":
-                    musicPlayer.playRadio("http://live-aacplus-64.kexp.org/kexp64.aac");
-                    out.println("Playing radio: " + name);
-                    break;
                 case "HitFM":
                     musicPlayer.playRadio("http://online.hitfm.ua/HitFM");
                     out.println("Playing radio: " + name);
@@ -60,7 +54,7 @@ public class RadioCommand implements Command {
                     out.println("Playing radio: " + name);
                     break;
                 default:
-                    out.println("Please provide a correct radio name. Options: KEXP, HitFM, Rocks, ClassicFM, Paradise.");
+                    out.println("Please provide a correct radio name. Options:HitFM, Rocks, ClassicFM, Paradise.");
             }
         } else {
             Random random = new Random();

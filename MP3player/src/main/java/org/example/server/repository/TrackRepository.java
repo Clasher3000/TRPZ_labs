@@ -7,7 +7,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import org.example.server.entity.Playlist;
 import org.example.server.entity.Track;
-import org.example.entity.Track_;
+import org.example.server.entity.Track_;
 import org.example.server.exception.ResourceNotFoundException;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.MetadataSources;
